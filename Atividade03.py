@@ -7,6 +7,7 @@ key = "7b229feabe44cf5326591114"
 
 def get_cambio(moeda):
     r = requests.get(f"https://v6.exchangerate-api.com/v6/{key}/pair/USD/{moeda}")
+    print(r.json())
     return r.json()
 
 
