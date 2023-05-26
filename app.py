@@ -1,7 +1,8 @@
 from flask import Flask, render_template, jsonify, request
 import sqlite3
 import uuid
-
+from datetime import datetime
+import requests
 
 class Carteira:
     def __init__(self, usuario) -> None:
@@ -73,6 +74,10 @@ def transferencia_carteira():
                 data = (valorNovoDestino, destino)
                 cur.execute(sql_update_query, data)
 
+                cur.execute("insert into HISTORICO (origem, destino, valor, data) values (?, ?, ?, ?)",
+                    (origem, destino, valor, str(datetime.now())))
+                con.commit()
+
                 con.commit()
 
                 return jsonify("Transferencia realizada com sucesso!")
@@ -95,3 +100,54 @@ def deletar_carteira():
 
     except Exception as exception:
         return jsonify("Erro a deletar usuário" + exception)
+
+#/historico?usuario=matheus6
+@app.route('/historico', methods=['GET'])
+def historico():
+    try:
+        usuario = request.args.get('usuario')
+
+        con = sqlite3.connect("banco.db")
+        cur = con.cursor()
+        cur.execute("SELECT * FROM HISTORICO WHERE origem=?", (usuario,))
+        rows = cur.fetchall()
+
+        for row in rows:
+            print(row)
+
+        return jsonify(rows)
+
+    except Exception as exception:
+        return jsonify("Erro a deletar usuário" + exception)
+
+
+#/historico?usuario=matheus6
+@app.route('/get_bitcoin_price', methods=['GET'])
+def get_bitcoin_price():
+
+    url = 'https://rest.coinapi.io/v1/exchangerate/BTC/BRL'
+    headers = {'X-CoinAPI-Key' : '2262DFFD-E100-4D8E-A6BE-427C976C146A'}
+    response = requests.get(url, headers=headers)
+    
+    return jsonify(response.json())
+
+
+@app.route('/buy_bitcoin_price', methods=['GET'])
+def buy_bitcoin_price():
+
+    url = 'https://rest.coinapi.io/v1/exchangerate/ETC/BRL'
+    headers = {'X-CoinAPI-Key' : '2262DFFD-E100-4D8E-A6BE-427C976C146A'}
+    response = requests.get(url, headers=headers)
+    res = response.json()
+    print(res['rate'])
+
+
+    
+    
+    return jsonify(response.json())
+
+
+
+
+
+
